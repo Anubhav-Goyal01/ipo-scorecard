@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pymupdf
+openai
+orjson
+loguru
+python-dotenv
+pydantic
+openai-agents
