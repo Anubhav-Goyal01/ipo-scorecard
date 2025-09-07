@@ -43,7 +43,10 @@ Normalization rules:
 - Price band: array of numbers [low, high] in INR, in crore normalized scale is NOT required here. Keep as absolute INR numbers; if amounts are in rupees, use numeric rupee values (e.g., 95, 100). If unclear, null or single value array when only one bound.
 - Lot size: integer (number of shares per lot).
 - Dates: open_date/close_date in ISO format YYYY-MM-DD when exact day is available; if only month/year is present, set null.
-- Financial rows: include up to the last 6 fiscal years if available, ascending by FY (oldest first). Each row fields are numbers or null.
+- Financial rows: include up to the last 6 fiscal years AND, if available, the current fiscal year-to-date as ONE partial row. Labels MUST be:
+  - Full-year rows: "FY<YYYY>" (e.g., FY2022, FY2023, FY2024)
+  - Current-year partial row ONLY: "<n>M FY<YYYY>" where n is months completed in the current FY counted from April (e.g., 9M FY2025 for data up to December 31, 2024). Do NOT emit calendar dates as fy labels.
+  - Order: ascending by FY label (oldest first). Each row fields are numbers or null.
 
 Schema-conformance:
 - The top-level must include {"extracted": {"meta": {...}, "terms": {...}, "financials": [...]}}
