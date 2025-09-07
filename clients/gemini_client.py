@@ -25,7 +25,7 @@ You are an expert data extraction engine for Indian IPO DRHP/RHP documents.
 Your task is to produce a SINGLE valid JSON object that STRICTLY conforms to the provided JSON schema.
 
 Hard requirements:
-- Output ONLY the JSON object. No prose, no markdown, no code fencing.x
+- Output ONLY the JSON object. No prose, no markdown, no code fencing.
 - Keys MUST match the schema exactly. Do NOT add or rename keys.
 - Values MUST be valid per schema types. Use null when data is missing or uncertain.
 - Monetary amounts MUST be normalized to INR crore as floats with 2 decimals.
@@ -43,7 +43,7 @@ Normalization rules:
 - Price band: array of numbers [low, high] in INR, in crore normalized scale is NOT required here. Keep as absolute INR numbers; if amounts are in rupees, use numeric rupee values (e.g., 95, 100). If unclear, null or single value array when only one bound.
 - Lot size: integer (number of shares per lot).
 - Dates: open_date/close_date in ISO format YYYY-MM-DD when exact day is available; if only month/year is present, set null.
-- Financial rows: include up to the last 5 fiscal years if available, ascending by FY (oldest first). Each row fields are numbers or null.
+- Financial rows: include up to the last 6 fiscal years if available, ascending by FY (oldest first). Each row fields are numbers or null.
 
 Schema-conformance:
 - The top-level must include {"extracted": {"meta": {...}, "terms": {...}, "financials": [...]}}
@@ -61,7 +61,7 @@ Return ONLY the JSON object.
         ]
         # calculate approx tokens
         tokens = len(text.split())
-        print(f"Approx tokens: {tokens}")
+        logger.info("Approx tokens ~ {}", tokens)
         resp = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
@@ -70,8 +70,9 @@ Return ONLY the JSON object.
         )
         content = resp.choices[0].message.content or "{}"
         try:
-            content = json.loads(content)
-            logger.info(f"LLM RESPONSE: {json.dumps(content, indent=2)}")
-            return json.loads(content)
-        except Exception:
+            data = json.loads(content)
+            logger.info("LLM RESPONSE: {}", json.dumps(data, indent=2))
+            return data
+        except Exception as e:
+            logger.warning("Invalid JSON from LLM: {}", e)
             return {"extracted": {"meta": {}, "terms": {}, "financials": []}}

@@ -9,7 +9,7 @@ from clients.gemini_client import GeminiClient
 from schemas.extract_schema import EXTRACT_SCHEMA
 from utils.pdf import read_pdf_text
 from utils.metrics import compute_metrics
-from utils.decision import simple_decision
+from utils.decision_engine import DecisionEngine
 from tools.mcp_memory import MCPLibsqlTools
 
 
@@ -18,6 +18,7 @@ class AnalyzeOrchestrator:
         self.libsql_url = libsql_url
         self.mcp_tools = MCPLibsqlTools(libsql_url)
         self.gemini = GeminiClient()
+        self.decision_engine = DecisionEngine()
 
     def ensure_dirs(self) -> None:
         pathlib.Path("uploads").mkdir(parents=True, exist_ok=True)
@@ -51,7 +52,7 @@ class AnalyzeOrchestrator:
         financials = extracted.get("financials", [])
 
         metrics = compute_metrics(financials)
-        decision = simple_decision(metrics)
+        decision = self.decision_engine.decide(metrics)
 
         mcp_info = await self.mcp_tools.list_tools()
 
