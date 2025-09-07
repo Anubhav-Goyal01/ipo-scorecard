@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 def compute_metrics(financials: list[dict[str, Any]]) -> dict[str, Any]:
     rows = [r for r in financials if r.get("revenue_cr") is not None]
-    rows = rows[-3:] if len(rows) >= 3 else rows
+    rows = rows[-5:] if len(rows) >= 5 else rows
     revenue = [r.get("revenue_cr") for r in rows if isinstance(r.get("revenue_cr"), (int, float))]
     pat = [r.get("pat_cr") for r in rows if isinstance(r.get("pat_cr"), (int, float))]
     ebitda = [r.get("ebitda_cr") for r in rows if isinstance(r.get("ebitda_cr"), (int, float))]
