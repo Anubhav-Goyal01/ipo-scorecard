@@ -4,7 +4,7 @@ import { useState } from "react";
 import { analyzePdf } from "@/lib/api";
 import type { AnalyzeResponse } from "@/lib/types";
 
-export default function UploadBox({ onResult }: { onResult: (r: AnalyzeResponse) => void }) {
+export default function UploadBox({ onResult, onSelectedFileName }: { onResult: (r: AnalyzeResponse) => void; onSelectedFileName?: (name: string) => void }) {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,6 +27,11 @@ export default function UploadBox({ onResult }: { onResult: (r: AnalyzeResponse)
     }
   };
 
+  const handleFile = (f: File | null) => {
+    setFile(f);
+    if (f && onSelectedFileName) onSelectedFileName(f.name);
+  };
+
   return (
     <form onSubmit={onSubmit} className="w-full max-w-2xl mx-auto p-6 rounded-lg border border-gray-300 bg-white text-gray-900">
       <div className="flex flex-col gap-4">
@@ -34,7 +39,7 @@ export default function UploadBox({ onResult }: { onResult: (r: AnalyzeResponse)
         <input
           type="file"
           accept="application/pdf"
-          onChange={(e) => setFile(e.target.files?.[0] || null)}
+          onChange={(e) => handleFile(e.target.files?.[0] || null)}
           className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
         />
         {file && (

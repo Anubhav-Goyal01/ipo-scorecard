@@ -23,6 +23,7 @@ class AnalyzeOrchestrator:
     def ensure_dirs(self) -> None:
         pathlib.Path("uploads").mkdir(parents=True, exist_ok=True)
         pathlib.Path("memory").mkdir(parents=True, exist_ok=True)
+        pathlib.Path("memory/responses").mkdir(parents=True, exist_ok=True)
 
     async def run(
         self,
@@ -43,8 +44,26 @@ class AnalyzeOrchestrator:
 
         computed_slug = slug or (pathlib.Path(original_filename).stem.replace(" ", "-").lower() if original_filename else file_id)
 
-        text = read_pdf_text(pdf_path)
-        structured = self.gemini.extract_structured(text, EXTRACT_SCHEMA)
+        # Cache: check for prior structured response
+        cache_file = pathlib.Path("memory/responses") / f"{file_id}.json"
+        structured: dict[str, Any]
+        if cache_file.exists():
+            try:
+                structured = json.loads(cache_file.read_text())
+                logger.info("Cache hit for {}", file_id)
+            except Exception:
+                logger.warning("Failed to read cache for {}, recomputing", file_id)
+                text = read_pdf_text(pdf_path)
+                structured = self.gemini.extract_structured(text, EXTRACT_SCHEMA)
+                cache_file.write_text(json.dumps(structured))
+        else:
+            text = read_pdf_text(pdf_path)
+            structured = self.gemini.extract_structured(text, EXTRACT_SCHEMA)
+            try:
+                cache_file.write_text(json.dumps(structured))
+                logger.info("Cached structured output at {}", cache_file)
+            except Exception as e:
+                logger.warning("Failed to write cache {}: {}", cache_file, e)
 
         extracted = structured.get("extracted", {})
         meta = extracted.get("meta", {})
